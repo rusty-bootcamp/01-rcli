@@ -1,6 +1,26 @@
 use clap::Parser;
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::{path::Path, str::FromStr};
+
+#[derive(Debug, Clone)]
+pub enum OutputFormat {
+    Json,
+    Yaml,
+    Toml,
+}
+
+impl FromStr for OutputFormat {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "json" => Ok(OutputFormat::Json),
+            "yaml" => Ok(OutputFormat::Yaml),
+            "toml" => Ok(OutputFormat::Toml),
+            _ => Err("Invalid output format"),
+        }
+    }
+}
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "PascalCase")]
@@ -18,8 +38,10 @@ pub struct Player {
 pub struct CsvOpts {
     #[arg(short, long, value_parser = verify_input_file)]
     pub input: String,
-    #[arg(short, long, default_value = "output.json")]
+    #[arg(short, long)]
     pub output: String,
+    #[arg(short, long, value_parser = parse_format, default_value = "json")]
+    pub format: OutputFormat,
     #[arg(short, long, default_value_t = ',')]
     pub delimiter: char,
     #[arg(long, default_value_t = true)]
@@ -45,4 +67,8 @@ fn verify_input_file(input: &str) -> Result<String, &'static str> {
     } else {
         Err("File does not exist.")
     }
+}
+
+fn parse_format(format: &str) -> Result<OutputFormat, &'static str> {
+    format.parse::<OutputFormat>()
 }

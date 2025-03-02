@@ -32,15 +32,39 @@ pub fn deserialize_csv(opts: CsvOpts) -> anyhow::Result<Vec<Player>> {
 }
 
 pub fn serialize_record_to_json(records: Vec<Value>, opts: CsvOpts) -> anyhow::Result<()> {
-    let json_string = serde_json::to_string_pretty(&records)?;
-    fs::write(format!("record_{}", opts.output), json_string)?;
+    let content = match opts.format {
+        crate::OutputFormat::Json => serde_json::to_string_pretty(&records)?,
+        crate::OutputFormat::Yaml => serde_yaml::to_string(&records)?,
+        crate::OutputFormat::Toml => {
+            #[derive(serde::Serialize)]
+            struct Record {
+                item: Vec<Value>,
+            }
+            let record = Record { item: records };
+            toml::to_string(&record)?
+        }
+    };
+
+    fs::write(format!("record_{}", opts.output), content)?;
 
     Ok(())
 }
 
 pub fn serialize_player_to_json(records: Vec<Player>, opts: CsvOpts) -> anyhow::Result<()> {
-    let json_string = serde_json::to_string_pretty(&records)?;
-    fs::write(opts.output, json_string)?;
+    let content = match opts.format {
+        crate::OutputFormat::Json => serde_json::to_string_pretty(&records)?,
+        crate::OutputFormat::Yaml => serde_yaml::to_string(&records)?,
+        crate::OutputFormat::Toml => {
+            #[derive(serde::Serialize)]
+            struct Record {
+                item: Vec<Player>,
+            }
+            let record = Record { item: records };
+            toml::to_string(&record)?
+        }
+    };
+
+    fs::write(opts.output, content)?;
 
     Ok(())
 }
