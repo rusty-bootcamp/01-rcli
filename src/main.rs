@@ -7,10 +7,10 @@ fn main() -> anyhow::Result<()> {
     match opts.cmd {
         SubCommand::Csv(opts) => {
             let records = read_with_csv_builder(opts.clone())?;
-            serialize_record_to_json(records, opts.clone())?;
+            serialize_record(records, opts.clone())?;
 
             let palyers = deserialize_csv(opts.clone())?;
-            serialize_player_to_json(palyers, opts.clone())?;
+            serialize_player(palyers, opts.clone())?;
         }
     }
 

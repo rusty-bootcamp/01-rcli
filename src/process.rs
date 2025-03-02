@@ -31,7 +31,7 @@ pub fn deserialize_csv(opts: CsvOpts) -> anyhow::Result<Vec<Player>> {
     Ok(records)
 }
 
-pub fn serialize_record_to_json(records: Vec<Value>, opts: CsvOpts) -> anyhow::Result<()> {
+pub fn serialize_record(records: Vec<Value>, opts: CsvOpts) -> anyhow::Result<()> {
     let content = match opts.format {
         crate::OutputFormat::Json => serde_json::to_string_pretty(&records)?,
         crate::OutputFormat::Yaml => serde_yaml::to_string(&records)?,
@@ -50,7 +50,7 @@ pub fn serialize_record_to_json(records: Vec<Value>, opts: CsvOpts) -> anyhow::R
     Ok(())
 }
 
-pub fn serialize_player_to_json(records: Vec<Player>, opts: CsvOpts) -> anyhow::Result<()> {
+pub fn serialize_player(records: Vec<Player>, opts: CsvOpts) -> anyhow::Result<()> {
     let content = match opts.format {
         crate::OutputFormat::Json => serde_json::to_string_pretty(&records)?,
         crate::OutputFormat::Yaml => serde_yaml::to_string(&records)?,
