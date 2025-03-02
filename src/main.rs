@@ -71,9 +71,21 @@ fn deserialize_csv(opts: CsvOpts) -> anyhow::Result<Vec<Player>> {
     Ok(records)
 }
 
-fn serialize_json(records: Vec<Player>, opts: CsvOpts) -> anyhow::Result<()> {
-    let json = serde_json::to_string_pretty(&records)?;
-    fs::write(opts.output, json)?;
+fn serialize_record_to_json(records: Vec<StringRecord>, opts: CsvOpts) -> anyhow::Result<()> {
+    let json_data: Vec<Vec<String>> = records
+        .into_iter()
+        .map(|record| record.into_iter().map(String::from).collect())
+        .collect();
+
+    let json_string = serde_json::to_string_pretty(&json_data)?;
+    fs::write(format!("record_{}", opts.output), json_string)?;
+
+    Ok(())
+}
+
+fn serialize_player_to_json(records: Vec<Player>, opts: CsvOpts) -> anyhow::Result<()> {
+    let json_string = serde_json::to_string_pretty(&records)?;
+    fs::write(opts.output, json_string)?;
 
     Ok(())
 }
@@ -83,10 +95,11 @@ fn main() -> anyhow::Result<()> {
 
     match opts.cmd {
         SubCommand::Csv(opts) => {
-            read_with_csv_builder(opts.clone())?;
+            let records = read_with_csv_builder(opts.clone())?;
+            serialize_record_to_json(records, opts.clone())?;
 
             let palyers = deserialize_csv(opts.clone())?;
-            serialize_json(palyers, opts.clone())?;
+            serialize_player_to_json(palyers, opts.clone())?;
         }
     }
 
