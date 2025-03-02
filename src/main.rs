@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{fs, path::Path};
 
 use clap::Parser;
 use csv::{Reader, ReaderBuilder, StringRecord};
@@ -49,7 +49,7 @@ fn verify_input_file(input: &str) -> Result<String, &'static str> {
     }
 }
 
-fn read_with_csv_builder(opts: CsvOpts) -> anyhow::Result<()> {
+fn read_with_csv_builder(opts: CsvOpts) -> anyhow::Result<Vec<StringRecord>> {
     let mut rdr = ReaderBuilder::new()
         .delimiter(opts.delimiter as u8)
         .has_headers(opts.header)
@@ -58,23 +58,22 @@ fn read_with_csv_builder(opts: CsvOpts) -> anyhow::Result<()> {
 
     let records = rdr.records().collect::<Result<Vec<StringRecord>, _>>()?;
 
-    for record in records {
-        println!("{:?}", record);
-    }
-
-    Ok(())
+    Ok(records)
 }
 
-fn deserialize_csv(opts: CsvOpts) -> anyhow::Result<()> {
+fn deserialize_csv(opts: CsvOpts) -> anyhow::Result<Vec<Player>> {
     let mut rdr = Reader::from_path(opts.input)?;
 
     let records = rdr
         .deserialize::<Player>()
         .collect::<Result<Vec<Player>, _>>()?;
 
-    for player in records {
-        println!("{:?}", player);
-    }
+    Ok(records)
+}
+
+fn serialize_json(records: Vec<Player>, opts: CsvOpts) -> anyhow::Result<()> {
+    let json = serde_json::to_string_pretty(&records)?;
+    fs::write(opts.output, json)?;
 
     Ok(())
 }
@@ -85,7 +84,9 @@ fn main() -> anyhow::Result<()> {
     match opts.cmd {
         SubCommand::Csv(opts) => {
             read_with_csv_builder(opts.clone())?;
-            deserialize_csv(opts)?;
+
+            let palyers = deserialize_csv(opts.clone())?;
+            serialize_json(palyers, opts.clone())?;
         }
     }
 
