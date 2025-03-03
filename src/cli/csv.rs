@@ -48,35 +48,6 @@ pub struct CsvOpts {
     pub header: bool,
 }
 
-#[derive(Debug, Parser, Clone)]
-pub enum SubCommand {
-    #[command(name = "csv", about = "Show CSV, or convert CSV to other formats")]
-    Csv(CsvOpts),
-    #[command(name = "genpass", about = "Generate a random password")]
-    GenPass(GenPassOpts),
-}
-
-#[derive(Debug, Clone, Parser)]
-pub struct GenPassOpts {
-    #[arg(short, long, default_value_t = 16)]
-    pub length: usize,
-    #[arg(short, long, default_value_t = false)]
-    pub uppercase: bool,
-    #[arg(long, default_value_t = true)]
-    pub lowercase: bool,
-    #[arg(short, long, default_value_t = true)]
-    pub number: bool,
-    #[arg(short, long, default_value_t = true)]
-    pub symbol: bool,
-}
-
-#[derive(Debug, Parser)]
-#[command(name = "rcli", version, about, long_about = None)]
-pub struct Opts {
-    #[command(subcommand)]
-    pub cmd: SubCommand,
-}
-
 fn verify_input_file(input: &str) -> Result<String, &'static str> {
     if Path::new(input).exists() {
         Ok(input.into())
