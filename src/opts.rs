@@ -59,7 +59,7 @@ pub enum SubCommand {
 #[derive(Debug, Clone, Parser)]
 pub struct GenPassOpts {
     #[arg(short, long, default_value_t = 16)]
-    pub length: u8,
+    pub length: usize,
     #[arg(short, long, default_value_t = false)]
     pub uppercase: bool,
     #[arg(long, default_value_t = true)]
