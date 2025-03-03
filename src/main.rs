@@ -13,7 +13,8 @@ fn main() -> anyhow::Result<()> {
             serialize_player(palyers, opts.clone())?;
         }
         SubCommand::GenPass(opts) => {
-            println!("{:?}", opts);
+            let passwd = process_passwd(&opts)?;
+            println!("{}", passwd);
         }
     }
 
