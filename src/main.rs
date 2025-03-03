@@ -12,6 +12,9 @@ fn main() -> anyhow::Result<()> {
             let palyers = deserialize_csv(opts.clone())?;
             serialize_player(palyers, opts.clone())?;
         }
+        SubCommand::GenPass(opts) => {
+            println!("{:?}", opts);
+        }
     }
 
     Ok(())
