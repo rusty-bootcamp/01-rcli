@@ -1,6 +1,8 @@
 use clap::Parser;
 use serde::{Deserialize, Serialize};
-use std::{path::Path, str::FromStr};
+use std::str::FromStr;
+
+use super::verify_input_file;
 
 #[derive(Debug, Clone)]
 pub enum OutputFormat {
@@ -46,14 +48,6 @@ pub struct CsvOpts {
     pub delimiter: char,
     #[arg(long, default_value_t = true)]
     pub header: bool,
-}
-
-fn verify_input_file(input: &str) -> Result<String, &'static str> {
-    if Path::new(input).exists() {
-        Ok(input.into())
-    } else {
-        Err("File does not exist.")
-    }
 }
 
 fn parse_format(format: &str) -> Result<OutputFormat, &'static str> {

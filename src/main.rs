@@ -16,6 +16,16 @@ fn main() -> anyhow::Result<()> {
             let passwd = process_passwd(&opts)?;
             println!("{}", passwd);
         }
+        SubCommand::Base64(opts) => match opts {
+            Base64Subcommand::Encode(opts) => {
+                let encoded = process_encode(&opts)?;
+                println!("{:?}", encoded);
+            }
+            Base64Subcommand::Decode(opts) => {
+                let decoded = process_decode(&opts)?;
+                println!("{:?}", decoded);
+            }
+        },
     }
 
     Ok(())
