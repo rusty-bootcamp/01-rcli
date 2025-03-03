@@ -53,8 +53,9 @@ pub fn process_passwd(opts: &GenPassOpts) -> anyhow::Result<String> {
 
     let mut passwd = Vec::with_capacity(opts.length);
 
-    for chat_set in &char_sets {
-        let c = chat_set
+    // 确保每种启用的字符类型至少出现一次
+    for char_set in &char_sets {
+        let c = char_set
             .iter()
             .choose(&mut rng)
             .expect("Character set should not be empty");
@@ -62,7 +63,7 @@ pub fn process_passwd(opts: &GenPassOpts) -> anyhow::Result<String> {
         passwd.push(*c);
     }
 
-    // Fill the rest of the password with random characters from all_chars
+    // 用随机字符填充密码的剩余部分
     for _ in passwd.len()..opts.length {
         let c = all_chars
             .iter()
@@ -72,10 +73,10 @@ pub fn process_passwd(opts: &GenPassOpts) -> anyhow::Result<String> {
         passwd.push(*c);
     }
 
-    // Shuffle the password to randomize the positions of the characters
+    // 随机排列密码中的字符
     passwd.shuffle(&mut rng);
 
-    // Convert to string
+    // 转换为字符串
     let passwd_string = String::from_utf8(passwd)?;
 
     Ok(passwd_string)
