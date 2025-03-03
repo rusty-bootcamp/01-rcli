@@ -9,7 +9,7 @@ pub fn process_encode(opts: &EncodeOpts) -> anyhow::Result<String> {
         Base64Format::Standard => BASE64_STANDARD.encode(&content),
         Base64Format::UrlSafe => BASE64_URL_SAFE_NO_PAD.encode(&content),
     };
-    println!("{:?}", encoded);
+
     Ok(encoded)
 }
 
@@ -21,7 +21,27 @@ pub fn process_decode(opts: &DecodeOpts) -> anyhow::Result<String> {
     }?;
 
     let decoded = String::from_utf8(decoded)?;
-    println!("{:?}", decoded);
 
     Ok(decoded)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_base64_codec() -> anyhow::Result<()> {
+        let opts = EncodeOpts {
+            input: "Hello, World!".to_string(),
+            format: Base64Format::Standard,
+        };
+        let encoded = process_encode(&opts)?;
+        let decoded = process_decode(&DecodeOpts {
+            input: encoded.clone(),
+            format: Base64Format::Standard,
+        })?;
+        assert_eq!("Hello, World!", decoded);
+
+        Ok(())
+    }
 }
