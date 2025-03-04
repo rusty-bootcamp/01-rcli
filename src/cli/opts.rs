@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use super::{Base64Subcommand, CsvOpts, GenPassOpts};
+use super::{Base64Subcommand, CryptoSubcommand, CsvOpts, GenPassOpts};
 
 #[derive(Debug, Parser, Clone)]
 pub enum SubCommand {
@@ -10,6 +10,8 @@ pub enum SubCommand {
     GenPass(GenPassOpts),
     #[command(subcommand)]
     Base64(Base64Subcommand),
+    #[command(subcommand)]
+    Crypto(CryptoSubcommand),
 }
 
 #[derive(Debug, Parser)]

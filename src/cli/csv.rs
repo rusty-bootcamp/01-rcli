@@ -2,7 +2,7 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-use super::verify_input_file;
+use crate::verify_input_file;
 
 #[derive(Debug, Clone)]
 pub enum OutputFormat {

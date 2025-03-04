@@ -2,7 +2,9 @@ use std::str::FromStr;
 
 use clap::Parser;
 
-use super::{parse_base64_format, verify_input_file};
+use crate::verify_input_file;
+
+use super::parse_base64_format;
 
 #[derive(Debug, Clone, Parser)]
 pub enum Base64Subcommand {

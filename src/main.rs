@@ -26,6 +26,16 @@ fn main() -> anyhow::Result<()> {
                 println!("{:?}", decoded);
             }
         },
+        SubCommand::Crypto(opts) => match opts {
+            CryptoSubcommand::Encrypt(opts) => {
+                let encrypted = process_encrypt(&opts)?;
+                println!("{:?}", encrypted);
+            }
+            CryptoSubcommand::Decrypt(opts) => {
+                let decrypted = process_decrypt(&opts)?;
+                println!("{:?}", decrypted);
+            }
+        },
     }
 
     Ok(())
