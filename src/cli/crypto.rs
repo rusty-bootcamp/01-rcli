@@ -52,4 +52,6 @@ pub struct DecryptOpts {
     pub key: String,
     #[arg(short, long)]
     pub sig: String,
+    #[arg(short, long, value_parser = parse_format, default_value = "blake3")]
+    pub format: EncryptFormat,
 }
