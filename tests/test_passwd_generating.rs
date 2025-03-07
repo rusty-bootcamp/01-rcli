@@ -12,6 +12,7 @@ fn test_process_passwd_generating() -> anyhow::Result<()> {
     };
 
     let passwd = process_passwd(&opts)?;
+    let passwd = String::from_utf8(passwd)?;
     assert_eq!(passwd.len(), 16);
 
     let has_uppercase = passwd.chars().any(|c| c.is_ascii_uppercase());

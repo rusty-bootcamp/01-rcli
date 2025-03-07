@@ -7,8 +7,8 @@ const LOWER: &[u8] = b"abcdefghijkmnpqrstuvwxyz";
 const NUMBER: &[u8] = b"123456789";
 const SYMBOL: &[u8] = b"!@#$%^&*_";
 
-pub fn process_passwd(opts: &GenPassOpts) -> anyhow::Result<String> {
-    let mut rng = rand::rng();
+pub fn process_passwd(opts: &GenPassOpts) -> anyhow::Result<Vec<u8>> {
+    let mut rng = rand::thread_rng();
 
     let required_char_types = [opts.uppercase, opts.lowercase, opts.number, opts.symbol]
         .iter()
@@ -76,8 +76,5 @@ pub fn process_passwd(opts: &GenPassOpts) -> anyhow::Result<String> {
     // 随机排列密码中的字符
     passwd.shuffle(&mut rng);
 
-    // 转换为字符串
-    let passwd_string = String::from_utf8(passwd)?;
-
-    Ok(passwd_string)
+    Ok(passwd)
 }

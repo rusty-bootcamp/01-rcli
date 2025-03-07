@@ -1,8 +1,8 @@
-use std::str::FromStr;
+use std::{path::PathBuf, str::FromStr};
 
 use clap::Parser;
 
-use crate::input_reader;
+use crate::{input_reader, verify_path};
 
 #[derive(Debug, Clone)]
 pub enum EncryptFormat {
@@ -32,6 +32,8 @@ pub enum CryptoSubcommand {
     Encrypt(EncryptOpts),
     #[command(about = "Decrypt a message with a private/shared key.")]
     Decrypt(DecryptOpts),
+    #[command(about = "Generate a new key")]
+    Generate(GenerateKeyOpts),
 }
 
 #[derive(Debug, Clone, Parser)]
@@ -54,4 +56,12 @@ pub struct DecryptOpts {
     pub sig: String,
     #[arg(short, long, value_parser = parse_format, default_value = "blake3")]
     pub format: EncryptFormat,
+}
+
+#[derive(Debug, Clone, Parser)]
+pub struct GenerateKeyOpts {
+    #[arg(short, long, value_parser = parse_format, default_value = "blake3")]
+    pub format: EncryptFormat,
+    #[arg(short, long, value_parser = verify_path)]
+    pub output: PathBuf,
 }

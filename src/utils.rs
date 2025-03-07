@@ -1,14 +1,24 @@
 use std::{
     fs::File,
     io::{Cursor, Read},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 pub fn verify_input_file(input: &str) -> Result<String, &'static str> {
-    if Path::new(input).exists() && Path::new(input).is_file() || input == "-" {
+    let path = Path::new(input);
+    if path.exists() && path.is_file() || input == "-" {
         Ok(input.into())
     } else {
         Err("File does not exist.")
+    }
+}
+
+pub fn verify_path(path: &str) -> Result<PathBuf, &'static str> {
+    let path = Path::new(path);
+    if path.exists() && path.is_dir() {
+        Ok(path.into())
+    } else {
+        Err("Path does not exist or is not a directory.")
     }
 }
 

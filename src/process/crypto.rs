@@ -1,8 +1,11 @@
 use anyhow::{Ok, Result};
 use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
+use rand::rngs::OsRng;
 
-use crate::{DecryptOpts, EncryptFormat, EncryptOpts, input_reader};
+use crate::{DecryptOpts, EncryptFormat, EncryptOpts, GenPassOpts, GenerateKeyOpts, input_reader};
+
+use super::process_passwd;
 
 pub trait Encryptor {
     fn encrypt(&self, content: &str) -> Result<Vec<u8>, anyhow::Error>;
@@ -10,6 +13,10 @@ pub trait Encryptor {
 
 pub trait Decryptor {
     fn decrypt(&self, content: &str, sig: &[u8]) -> Result<bool, anyhow::Error>;
+}
+
+pub trait KeyGenerator {
+    fn generate_key() -> Result<Vec<Vec<u8>>, anyhow::Error>;
 }
 
 #[derive(Debug)]
@@ -53,6 +60,21 @@ impl Decryptor for Blake3 {
     }
 }
 
+impl KeyGenerator for Blake3 {
+    fn generate_key() -> Result<Vec<Vec<u8>>, anyhow::Error> {
+        let password_opts = GenPassOpts {
+            length: 32,
+            uppercase: true,
+            lowercase: true,
+            number: true,
+            symbol: true,
+        };
+
+        let key = process_passwd(&password_opts)?;
+        Ok(vec![key])
+    }
+}
+
 pub struct Ed25519 {
     key: SigningKey,
 }
@@ -88,6 +110,17 @@ impl Decryptor for Ed25519 {
         let decrypted = self.key.verify(content.as_bytes(), &sig);
         let bool = decrypted.is_ok();
         Ok(bool)
+    }
+}
+
+impl KeyGenerator for Ed25519 {
+    fn generate_key() -> Result<Vec<Vec<u8>>, anyhow::Error> {
+        let mut csprng = OsRng;
+        let sk = SigningKey::generate(&mut csprng);
+        let pk = sk.verifying_key().to_bytes().to_vec();
+        let sk = sk.to_bytes().to_vec();
+
+        Ok(vec![sk, pk])
     }
 }
 
@@ -152,6 +185,13 @@ pub fn process_decrypt(opts: &DecryptOpts) -> Result<bool, anyhow::Error> {
         }
     };
     Ok(decrypted)
+}
+
+pub fn process_generate(opts: &GenerateKeyOpts) -> Result<Vec<Vec<u8>>> {
+    match opts.format {
+        EncryptFormat::Blake3 => Blake3::generate_key(),
+        EncryptFormat::Ed25519 => Ed25519::generate_key(),
+    }
 }
 
 #[cfg(test)]

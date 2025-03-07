@@ -1,3 +1,5 @@
+use std::fs;
+
 use clap::Parser;
 use rcli::*;
 
@@ -14,7 +16,7 @@ fn main() -> anyhow::Result<()> {
         }
         SubCommand::GenPass(opts) => {
             let passwd = process_passwd(&opts)?;
-            println!("{}", passwd);
+            println!("{:?}", passwd);
         }
         SubCommand::Base64(opts) => match opts {
             Base64Subcommand::Encode(opts) => {
@@ -34,6 +36,21 @@ fn main() -> anyhow::Result<()> {
             CryptoSubcommand::Decrypt(opts) => {
                 let decrypted = process_decrypt(&opts)?;
                 println!("{:?}", decrypted);
+            }
+            CryptoSubcommand::Generate(opts) => {
+                let key = process_generate(&opts)?;
+                match opts.format {
+                    EncryptFormat::Blake3 => {
+                        let path = opts.output.join("blake3.txt");
+                        fs::write(path, &key[0])?;
+                    }
+                    EncryptFormat::Ed25519 => {
+                        let path = opts.output;
+                        fs::write(path.join("ed25519.sk"), &key[0])?;
+                        fs::write(path.join("ed25519.pk"), &key[1])?;
+                    }
+                }
+                println!("{:?}", key);
             }
         },
     }
