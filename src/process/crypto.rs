@@ -1,3 +1,5 @@
+use std::{fs, path::Path};
+
 use anyhow::{Ok, Result};
 use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
@@ -15,6 +17,12 @@ pub trait Decryptor {
     fn decrypt(&self, content: &str, sig: &[u8]) -> Result<bool, anyhow::Error>;
 }
 
+pub trait KeyLoader {
+    fn load(path: impl AsRef<Path>) -> Result<Self, anyhow::Error>
+    where
+        Self: Sized;
+}
+
 pub trait KeyGenerator {
     fn generate_key() -> Result<Vec<Vec<u8>>, anyhow::Error>;
 }
@@ -24,9 +32,26 @@ pub struct Blake3 {
     key: [u8; 32],
 }
 
+impl KeyLoader for Blake3 {
+    fn load(path: impl AsRef<Path>) -> Result<Self, anyhow::Error>
+    where
+        Self: Sized,
+    {
+        let key = fs::read(path)?;
+        Self::load_key(key)
+    }
+}
+
 impl Blake3 {
     pub fn new(key: [u8; 32]) -> Self {
         Self { key }
+    }
+
+    pub fn load_key(key: impl AsRef<[u8]>) -> Result<Self> {
+        let key = key.as_ref();
+        // convert &[u8] to &[u8; 32]
+        let key = (&key[..32]).try_into()?;
+        Ok(Self::new(key))
     }
 
     pub fn try_new(key: &str) -> Result<Self> {
@@ -79,9 +104,26 @@ pub struct Ed25519 {
     key: SigningKey,
 }
 
+impl KeyLoader for Ed25519 {
+    fn load(path: impl AsRef<Path>) -> Result<Self, anyhow::Error>
+    where
+        Self: Sized,
+    {
+        let key = fs::read(path)?;
+        Self::load_key(key)
+    }
+}
+
 impl Ed25519 {
     pub fn new(key: SigningKey) -> Self {
         Self { key }
+    }
+
+    pub fn load_key(key: impl AsRef<[u8]>) -> Result<Self> {
+        let key = key.as_ref();
+        // convert &[u8] to &[u8; 32]
+        let key = (&key[..32]).try_into()?;
+        Ok(Self::new(key))
     }
 
     pub fn try_new(key: &str) -> Result<Self, anyhow::Error> {
@@ -128,9 +170,26 @@ pub struct Ed25519Verifier {
     key: VerifyingKey,
 }
 
+impl KeyLoader for Ed25519Verifier {
+    fn load(path: impl AsRef<Path>) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        let key = fs::read(path)?;
+        Self::load_key(key)
+    }
+}
+
 impl Ed25519Verifier {
     pub fn new(key: VerifyingKey) -> Self {
         Self { key }
+    }
+
+    pub fn load_key(key: impl AsRef<[u8]>) -> Result<Self> {
+        let key = key.as_ref();
+        // convert &[u8] to &[u8; 32]
+        let key = (&key[..32]).try_into()?;
+        Ok(Self::new(key))
     }
 
     pub fn try_new(key: &str) -> Result<Self, anyhow::Error> {
@@ -207,6 +266,19 @@ mod tests {
         let sig = blake3.encrypt(content)?;
         let bool = blake3.decrypt(content, &sig)?;
         assert!(bool);
+        Ok(())
+    }
+
+    #[test]
+    fn test_ed25519_verify() -> Result<(), anyhow::Error> {
+        let sk = Ed25519::load("fixtures/ed25519.sk")?;
+        let pk = Ed25519Verifier::load("fixtures/ed25519.pk")?;
+
+        let content = "hello!";
+        let sig = sk.encrypt(content)?;
+        let bool = pk.decrypt(content, &sig)?;
+        assert!(bool);
+
         Ok(())
     }
 }
