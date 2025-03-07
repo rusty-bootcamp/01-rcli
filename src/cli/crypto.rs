@@ -38,7 +38,7 @@ pub enum CryptoSubcommand {
 pub struct EncryptOpts {
     #[arg(short, long, default_value = "-")]
     pub input: String,
-    #[arg(short, long, value_parser = input_reader, default_value = "-")]
+    #[arg(short, long, value_parser = input_reader)]
     pub key: String,
     #[arg(short, long, value_parser = parse_format, default_value = "blake3")]
     pub format: EncryptFormat,
@@ -48,7 +48,7 @@ pub struct EncryptOpts {
 pub struct DecryptOpts {
     #[arg(short, long, value_parser = input_reader, default_value = "-")]
     pub input: String,
-    #[arg(short, long, value_parser = input_reader, default_value = "-")]
+    #[arg(short, long, value_parser = input_reader)]
     pub key: String,
     #[arg(short, long)]
     pub sig: String,
