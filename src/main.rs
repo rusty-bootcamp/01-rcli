@@ -4,6 +4,7 @@ use clap::Parser;
 use rcli::*;
 
 fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::init();
     let opts = Opts::parse();
 
     match opts.cmd {
