@@ -53,6 +53,12 @@ fn main() -> anyhow::Result<()> {
                 println!("{:?}", key);
             }
         },
+        SubCommand::Http(cmd) => match cmd {
+            HttpSubCommand::Serve(opts) => {
+                println!("{:?}", opts);
+                println!("Serving at http://0.0.0.0:{}", opts.port);
+            }
+        },
     }
 
     Ok(())
