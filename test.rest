@@ -1,3 +1,6 @@
 ### test index router
 
 GET http://localhost:8080/
+GET http://localhost:8080/fixtures/blake3.txt
+GET http://localhost:8080/Cargo.toml
+GET http://localhost:8080/rustlang.txt
