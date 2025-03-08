@@ -8,11 +8,11 @@ pub enum SubCommand {
     Csv(CsvOpts),
     #[command(name = "genpass", about = "Generate a random password")]
     GenPass(GenPassOpts),
-    #[command(subcommand)]
+    #[command(subcommand, about = "Encode/decode base64")]
     Base64(Base64Subcommand),
-    #[command(subcommand)]
+    #[command(subcommand, about = "Encrypt/decrypt data")]
     Crypto(CryptoSubcommand),
-    #[command(subcommand)]
+    #[command(subcommand, about = "HTTP server")]
     Http(HttpSubCommand),
 }
 
