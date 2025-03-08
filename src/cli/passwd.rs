@@ -25,7 +25,7 @@ impl CmdExecutor for GenPassOpts {
             self.number,
             self.symbol,
         )?;
-        println!("{:?}", passwd);
+        println!("{}", String::from_utf8(passwd)?);
         Ok(())
     }
 }
