@@ -57,7 +57,7 @@ async fn main() -> anyhow::Result<()> {
         },
         SubCommand::Http(cmd) => match cmd {
             HttpSubCommand::Serve(opts) => {
-                let _ = process_http(&opts.dir, opts.port).await;
+                let _ = process_http(opts.dir, opts.port).await;
             }
         },
     }

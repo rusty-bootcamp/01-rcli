@@ -1,25 +1,51 @@
-use anyhow::{Ok, Result};
+use anyhow::Result;
 use axum::{
     Router,
+    extract::{Path, State},
+    http::StatusCode,
     response::{IntoResponse, Response},
     routing::get,
 };
-use std::{net::SocketAddr, path::Path};
+use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 use tracing::info;
 
-async fn index_handler() -> Response {
-    "Hello, World!".into_response()
+#[derive(Debug)]
+pub struct AppState {
+    path: PathBuf,
 }
 
-pub async fn process_http(path: &Path, port: u16) -> Result<()> {
+async fn index_handler(
+    State(state): State<Arc<AppState>>,
+    Path(path): Path<String>,
+) -> (StatusCode, Response) {
+    let path = std::path::Path::new(&state.path).join(path);
+    info!("Reading file {:?}", path);
+    if !path.exists() {
+        (StatusCode::NOT_FOUND, "File not found".into_response())
+    } else {
+        let content = tokio::fs::read_to_string(path).await;
+        match content {
+            Ok(content) => (StatusCode::OK, content.into_response()),
+            Err(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Internal server error".into_response(),
+            ),
+        }
+    }
+}
+
+pub async fn process_http(path: PathBuf, port: u16) -> Result<()> {
     info!(
         "Processing HTTP request for path: {} on port: {}",
         path.display(),
         port
     );
-    let router = Router::new().route("/", get(index_handler));
+    let app_state = AppState { path };
+    let router = Router::new()
+        .route("/{*lang}", get(index_handler))
+        .with_state(Arc::new(app_state));
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, router.into_make_service()).await?;
-    Ok(())
+    anyhow::Ok(())
 }
