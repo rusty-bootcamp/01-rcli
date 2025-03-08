@@ -58,3 +58,23 @@ pub async fn process_http(path: PathBuf, port: u16) -> Result<()> {
     axum::serve(listener, router.into_make_service()).await?;
     anyhow::Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use axum::body::to_bytes;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_index_handler() {
+        let state = Arc::new(AppState {
+            path: PathBuf::from("."),
+        });
+
+        let (status, content) = index_handler(State(state), Path("Cargo.toml".into())).await;
+        let body = to_bytes(content.into_body(), usize::MAX).await.unwrap();
+        let body_str = String::from_utf8_lossy(&body);
+        assert_eq!(status, StatusCode::OK);
+        assert!(body_str.starts_with("[package]"));
+    }
+}
