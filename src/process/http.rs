@@ -7,6 +7,7 @@ use axum::{
     routing::get,
 };
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
+use tower_http::services::ServeDir;
 use tracing::info;
 
 #[derive(Debug)]
@@ -40,9 +41,17 @@ pub async fn process_http(path: PathBuf, port: u16) -> Result<()> {
         path.display(),
         port
     );
-    let app_state = AppState { path };
+    let app_state = AppState { path: path.clone() };
+    let dir_service = ServeDir::new(path)
+        .append_index_html_on_directories(true)
+        .precompressed_gzip()
+        .precompressed_br()
+        .precompressed_deflate()
+        .precompressed_zstd();
+
     let router = Router::new()
         .route("/{*lang}", get(index_handler))
+        .nest_service("/tower", dir_service)
         .with_state(Arc::new(app_state));
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let listener = tokio::net::TcpListener::bind(addr).await?;
