@@ -3,7 +3,7 @@ use std::str::FromStr;
 use clap::Parser;
 use enum_dispatch::enum_dispatch;
 
-use crate::{CmdExecutor, process_decode, process_encode, verify_input_file};
+use crate::{CmdExecutor, input_reader, process_decode, process_encode};
 
 use super::parse_base64_format;
 
@@ -18,7 +18,7 @@ pub enum Base64Subcommand {
 
 #[derive(Debug, Clone, Parser)]
 pub struct EncodeOpts {
-    #[arg(short, long, value_parser = verify_input_file, default_value = "-")]
+    #[arg(short, long, value_parser = input_reader, default_value = "-")]
     pub input: String,
     #[arg(short, long, value_parser = parse_base64_format, default_value = "standard")]
     pub format: Base64Format,
@@ -26,7 +26,7 @@ pub struct EncodeOpts {
 
 #[derive(Debug, Clone, Parser)]
 pub struct DecodeOpts {
-    #[arg(short, long, value_parser = verify_input_file, default_value = "-")]
+    #[arg(short, long, value_parser = input_reader, default_value = "-")]
     pub input: String,
     #[arg(short, long, value_parser = parse_base64_format, default_value = "standard")]
     pub format: Base64Format,
