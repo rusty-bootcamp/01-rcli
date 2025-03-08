@@ -3,7 +3,8 @@ use std::fs;
 use clap::Parser;
 use rcli::*;
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
     let opts = Opts::parse();
 
@@ -56,8 +57,7 @@ fn main() -> anyhow::Result<()> {
         },
         SubCommand::Http(cmd) => match cmd {
             HttpSubCommand::Serve(opts) => {
-                println!("{:?}", opts);
-                println!("Serving at http://0.0.0.0:{}", opts.port);
+                let _ = process_http(&opts.dir, opts.port).await;
             }
         },
     }
