@@ -1,6 +1,7 @@
 use clap::Parser;
 
 use super::{Base64Subcommand, CryptoSubcommand, CsvOpts, GenPassOpts, HttpSubCommand};
+use crate::CmdExecutor;
 
 #[derive(Debug, Parser, Clone)]
 pub enum SubCommand {
@@ -21,4 +22,16 @@ pub enum SubCommand {
 pub struct Opts {
     #[command(subcommand)]
     pub cmd: SubCommand,
+}
+
+impl CmdExecutor for SubCommand {
+    async fn execute(&self) -> anyhow::Result<()> {
+        match self {
+            SubCommand::Csv(opts) => opts.execute().await,
+            SubCommand::GenPass(opts) => opts.execute().await,
+            SubCommand::Base64(opts) => opts.execute().await,
+            SubCommand::Crypto(opts) => opts.execute().await,
+            SubCommand::Http(opts) => opts.execute().await,
+        }
+    }
 }

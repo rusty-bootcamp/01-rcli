@@ -5,7 +5,7 @@ use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use rand::rngs::OsRng;
 
-use crate::{DecryptOpts, EncryptFormat, EncryptOpts, GenPassOpts, GenerateKeyOpts, input_reader};
+use crate::{EncryptFormat, input_reader};
 
 use super::process_passwd;
 
@@ -87,15 +87,7 @@ impl Decryptor for Blake3 {
 
 impl KeyGenerator for Blake3 {
     fn generate_key() -> Result<Vec<Vec<u8>>, anyhow::Error> {
-        let password_opts = GenPassOpts {
-            length: 32,
-            uppercase: true,
-            lowercase: true,
-            number: true,
-            symbol: true,
-        };
-
-        let key = process_passwd(&password_opts)?;
+        let key = process_passwd(32, true, true, true, true)?;
         Ok(vec![key])
     }
 }
@@ -215,39 +207,48 @@ impl Decryptor for Ed25519Verifier {
     }
 }
 
-pub fn process_encrypt(opts: &EncryptOpts) -> Result<Vec<u8>, anyhow::Error> {
-    let content = input_reader(&opts.input)?;
-    let encrypted = match opts.format {
+pub fn process_encrypt(
+    input: &str,
+    format: &EncryptFormat,
+    key: &str,
+) -> Result<Vec<u8>, anyhow::Error> {
+    let content = input_reader(input)?;
+    let encrypted = match format {
         EncryptFormat::Blake3 => {
-            let signer = Blake3::try_new(&opts.key)?;
+            let signer = Blake3::try_new(key)?;
             signer.encrypt(&content)?
         }
         EncryptFormat::Ed25519 => {
-            let signer = Ed25519::try_new(&opts.key)?;
+            let signer = Ed25519::try_new(key)?;
             signer.encrypt(&content)?
         }
     };
     Ok(encrypted)
 }
 
-pub fn process_decrypt(opts: &DecryptOpts) -> Result<bool, anyhow::Error> {
-    let content = input_reader(&opts.input)?;
-    let sig = BASE64_URL_SAFE_NO_PAD.decode(&opts.sig)?;
-    let decrypted = match opts.format {
+pub fn process_decrypt(
+    input: &str,
+    format: &EncryptFormat,
+    key: &str,
+    sig: &str,
+) -> Result<bool, anyhow::Error> {
+    let content = input_reader(input)?;
+    let sig = BASE64_URL_SAFE_NO_PAD.decode(sig)?;
+    let decrypted = match format {
         EncryptFormat::Blake3 => {
-            let verifier = Blake3::try_new(&opts.key)?;
+            let verifier = Blake3::try_new(key)?;
             verifier.decrypt(&content, &sig)?
         }
         EncryptFormat::Ed25519 => {
-            let verifier = Ed25519Verifier::try_new(&opts.key)?;
+            let verifier = Ed25519Verifier::try_new(key)?;
             verifier.decrypt(&content, &sig)?
         }
     };
     Ok(decrypted)
 }
 
-pub fn process_generate(opts: &GenerateKeyOpts) -> Result<Vec<Vec<u8>>> {
-    match opts.format {
+pub fn process_generate(format: &EncryptFormat) -> Result<Vec<Vec<u8>>> {
+    match format {
         EncryptFormat::Blake3 => Blake3::generate_key(),
         EncryptFormat::Ed25519 => Ed25519::generate_key(),
     }

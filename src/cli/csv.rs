@@ -1,8 +1,12 @@
+use anyhow::Result;
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-use crate::verify_input_file;
+use crate::{
+    CmdExecutor, deserialize_csv, read_with_csv_builder, serialize_player, serialize_record,
+    verify_input_file,
+};
 
 #[derive(Debug, Clone)]
 pub enum OutputFormat {
@@ -52,4 +56,15 @@ pub struct CsvOpts {
 
 fn parse_format(format: &str) -> Result<OutputFormat, &'static str> {
     format.parse::<OutputFormat>()
+}
+
+impl CmdExecutor for CsvOpts {
+    async fn execute(&self) -> anyhow::Result<()> {
+        let records = read_with_csv_builder(&self.input, self.delimiter, self.header)?;
+        serialize_record(records, self.format.clone(), &self.output)?;
+
+        let palyers = deserialize_csv(&self.input)?;
+        serialize_player(palyers, self.format.clone(), &self.output)?;
+        Ok(())
+    }
 }

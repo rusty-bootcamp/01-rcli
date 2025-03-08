@@ -1,17 +1,9 @@
 use anyhow::Ok;
-use rcli::{GenPassOpts, process_passwd};
+use rcli::process_passwd;
 
 #[test]
 fn test_process_passwd_generating() -> anyhow::Result<()> {
-    let opts = GenPassOpts {
-        length: 16,
-        uppercase: false,
-        lowercase: true,
-        number: true,
-        symbol: true,
-    };
-
-    let passwd = process_passwd(&opts)?;
+    let passwd = process_passwd(16, false, true, true, true)?;
     let passwd = String::from_utf8(passwd)?;
     assert_eq!(passwd.len(), 16);
 

@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use clap::Parser;
 
-use crate::verify_input_file;
+use crate::{CmdExecutor, process_decode, process_encode, verify_input_file};
 
 use super::parse_base64_format;
 
@@ -53,6 +53,23 @@ impl From<Base64Format> for &'static str {
         match format {
             Base64Format::Standard => "standard",
             Base64Format::UrlSafe => "url",
+        }
+    }
+}
+
+impl CmdExecutor for Base64Subcommand {
+    async fn execute(&self) -> anyhow::Result<()> {
+        match self {
+            Base64Subcommand::Encode(opts) => {
+                let encoded = process_encode(&opts.input, opts.format.clone())?;
+                println!("{:?}", encoded);
+                Ok(())
+            }
+            Base64Subcommand::Decode(opts) => {
+                let decoded = process_decode(&opts.input, opts.format.clone())?;
+                println!("{:?}", decoded);
+                Ok(())
+            }
         }
     }
 }

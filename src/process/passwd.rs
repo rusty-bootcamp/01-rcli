@@ -1,21 +1,25 @@
 use rand::seq::{IteratorRandom, SliceRandom};
 
-use crate::GenPassOpts;
-
 const UPPER: &[u8] = b"ABCDEFGHIJKLMNPQRSTUVWXYZ";
 const LOWER: &[u8] = b"abcdefghijkmnpqrstuvwxyz";
 const NUMBER: &[u8] = b"123456789";
 const SYMBOL: &[u8] = b"!@#$%^&*_";
 
-pub fn process_passwd(opts: &GenPassOpts) -> anyhow::Result<Vec<u8>> {
+pub fn process_passwd(
+    length: usize,
+    uppercase: bool,
+    lowercase: bool,
+    number: bool,
+    symbol: bool,
+) -> anyhow::Result<Vec<u8>> {
     let mut rng = rand::thread_rng();
 
-    let required_char_types = [opts.uppercase, opts.lowercase, opts.number, opts.symbol]
+    let required_char_types = [uppercase, lowercase, number, symbol]
         .iter()
         .filter(|&&enabled| enabled)
         .count();
 
-    if opts.length < required_char_types {
+    if length < required_char_types {
         return Err(anyhow::anyhow!(
             "Password length must be at least {}",
             required_char_types
@@ -25,22 +29,22 @@ pub fn process_passwd(opts: &GenPassOpts) -> anyhow::Result<Vec<u8>> {
     let mut all_chars = Vec::new();
     let mut char_sets = Vec::new();
 
-    if opts.uppercase {
+    if uppercase {
         all_chars.extend_from_slice(UPPER);
         char_sets.push(UPPER);
     }
 
-    if opts.lowercase {
+    if lowercase {
         all_chars.extend_from_slice(LOWER);
         char_sets.push(LOWER);
     }
 
-    if opts.number {
+    if number {
         all_chars.extend_from_slice(NUMBER);
         char_sets.push(NUMBER);
     }
 
-    if opts.symbol {
+    if symbol {
         all_chars.extend_from_slice(SYMBOL);
         char_sets.push(SYMBOL);
     }
@@ -51,7 +55,7 @@ pub fn process_passwd(opts: &GenPassOpts) -> anyhow::Result<Vec<u8>> {
         ));
     }
 
-    let mut passwd = Vec::with_capacity(opts.length);
+    let mut passwd = Vec::with_capacity(length);
 
     // 确保每种启用的字符类型至少出现一次
     for char_set in &char_sets {
@@ -64,7 +68,7 @@ pub fn process_passwd(opts: &GenPassOpts) -> anyhow::Result<Vec<u8>> {
     }
 
     // 用随机字符填充密码的剩余部分
-    for _ in passwd.len()..opts.length {
+    for _ in passwd.len()..length {
         let c = all_chars
             .iter()
             .choose(&mut rng)

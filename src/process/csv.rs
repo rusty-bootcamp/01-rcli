@@ -2,13 +2,17 @@ use csv::{Reader, ReaderBuilder, StringRecord};
 use serde_json::Value;
 use std::fs;
 
-use crate::{CsvOpts, Player};
+use crate::{OutputFormat, Player};
 
-pub fn read_with_csv_builder(opts: CsvOpts) -> anyhow::Result<Vec<Value>> {
+pub fn read_with_csv_builder(
+    input: &str,
+    delimiter: char,
+    has_headers: bool,
+) -> anyhow::Result<Vec<Value>> {
     let mut rdr = ReaderBuilder::new()
-        .delimiter(opts.delimiter as u8)
-        .has_headers(opts.header)
-        .from_path(opts.input)
+        .delimiter(delimiter as u8)
+        .has_headers(has_headers)
+        .from_path(input)
         .expect("Failed to open CSV file");
 
     let headers = rdr.headers()?.clone();
@@ -21,8 +25,8 @@ pub fn read_with_csv_builder(opts: CsvOpts) -> anyhow::Result<Vec<Value>> {
     Ok(records)
 }
 
-pub fn deserialize_csv(opts: CsvOpts) -> anyhow::Result<Vec<Player>> {
-    let mut rdr = Reader::from_path(opts.input)?;
+pub fn deserialize_csv(input: &str) -> anyhow::Result<Vec<Player>> {
+    let mut rdr = Reader::from_path(input)?;
 
     let records = rdr
         .deserialize::<Player>()
@@ -31,11 +35,15 @@ pub fn deserialize_csv(opts: CsvOpts) -> anyhow::Result<Vec<Player>> {
     Ok(records)
 }
 
-pub fn serialize_record(records: Vec<Value>, opts: CsvOpts) -> anyhow::Result<()> {
-    let content = match opts.format {
-        crate::OutputFormat::Json => serde_json::to_string_pretty(&records)?,
-        crate::OutputFormat::Yaml => serde_yaml::to_string(&records)?,
-        crate::OutputFormat::Toml => {
+pub fn serialize_record(
+    records: Vec<Value>,
+    format: OutputFormat,
+    output: &str,
+) -> anyhow::Result<()> {
+    let content = match format {
+        OutputFormat::Json => serde_json::to_string_pretty(&records)?,
+        OutputFormat::Yaml => serde_yaml::to_string(&records)?,
+        OutputFormat::Toml => {
             #[derive(serde::Serialize)]
             struct Record {
                 item: Vec<Value>,
@@ -45,16 +53,20 @@ pub fn serialize_record(records: Vec<Value>, opts: CsvOpts) -> anyhow::Result<()
         }
     };
 
-    fs::write(format!("record_{}", opts.output), content)?;
+    fs::write(format!("record_{}", output), content)?;
 
     Ok(())
 }
 
-pub fn serialize_player(records: Vec<Player>, opts: CsvOpts) -> anyhow::Result<()> {
-    let content = match opts.format {
-        crate::OutputFormat::Json => serde_json::to_string_pretty(&records)?,
-        crate::OutputFormat::Yaml => serde_yaml::to_string(&records)?,
-        crate::OutputFormat::Toml => {
+pub fn serialize_player(
+    records: Vec<Player>,
+    format: OutputFormat,
+    output: &str,
+) -> anyhow::Result<()> {
+    let content = match format {
+        OutputFormat::Json => serde_json::to_string_pretty(&records)?,
+        OutputFormat::Yaml => serde_yaml::to_string(&records)?,
+        OutputFormat::Toml => {
             #[derive(serde::Serialize)]
             struct Record {
                 item: Vec<Player>,
@@ -64,7 +76,7 @@ pub fn serialize_player(records: Vec<Player>, opts: CsvOpts) -> anyhow::Result<(
         }
     };
 
-    fs::write(opts.output, content)?;
+    fs::write(output, content)?;
 
     Ok(())
 }
