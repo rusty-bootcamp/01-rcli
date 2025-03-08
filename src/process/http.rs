@@ -26,9 +26,9 @@ async fn index_handler(
         let content = tokio::fs::read_to_string(path).await;
         match content {
             Ok(content) => (StatusCode::OK, content.into_response()),
-            Err(_) => (
+            Err(e) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                "Internal server error".into_response(),
+                format!("Internal server error: {}", e).into_response(),
             ),
         }
     }
