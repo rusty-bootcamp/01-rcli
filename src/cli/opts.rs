@@ -1,9 +1,10 @@
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 
 use super::{Base64Subcommand, CryptoSubcommand, CsvOpts, GenPassOpts, HttpSubCommand};
-use crate::CmdExecutor;
 
 #[derive(Debug, Parser, Clone)]
+#[enum_dispatch(CmdExecutor)]
 pub enum SubCommand {
     #[command(name = "csv", about = "Show CSV, or convert CSV to other formats")]
     Csv(CsvOpts),
@@ -22,16 +23,4 @@ pub enum SubCommand {
 pub struct Opts {
     #[command(subcommand)]
     pub cmd: SubCommand,
-}
-
-impl CmdExecutor for SubCommand {
-    async fn execute(&self) -> anyhow::Result<()> {
-        match self {
-            SubCommand::Csv(opts) => opts.execute().await,
-            SubCommand::GenPass(opts) => opts.execute().await,
-            SubCommand::Base64(opts) => opts.execute().await,
-            SubCommand::Crypto(opts) => opts.execute().await,
-            SubCommand::Http(opts) => opts.execute().await,
-        }
-    }
 }

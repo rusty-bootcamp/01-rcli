@@ -1,6 +1,7 @@
 use std::{fs, path::PathBuf, str::FromStr};
 
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 
 use crate::{
     CmdExecutor, input_reader, process_decrypt, process_encrypt, process_generate, verify_path,
@@ -29,6 +30,7 @@ impl FromStr for EncryptFormat {
 }
 
 #[derive(Debug, Clone, Parser)]
+#[enum_dispatch(CmdExecutor)]
 pub enum CryptoSubcommand {
     #[command(about = "Encrypt a message with a private/shared key.")]
     Encrypt(EncryptOpts),
@@ -68,33 +70,38 @@ pub struct GenerateKeyOpts {
     pub output: PathBuf,
 }
 
-impl CmdExecutor for CryptoSubcommand {
+impl CmdExecutor for EncryptOpts {
     async fn execute(&self) -> anyhow::Result<()> {
-        match self {
-            CryptoSubcommand::Encrypt(opts) => {
-                let encrypted = process_encrypt(&opts.input, &opts.format, &opts.key)?;
-                println!("{:?}", encrypted);
+        let encoded = process_encrypt(&self.input, &self.format, &self.key)?;
+        println!("{:?}", encoded);
+        Ok(())
+    }
+}
+
+impl CmdExecutor for DecryptOpts {
+    async fn execute(&self) -> anyhow::Result<()> {
+        let decoded = process_decrypt(&self.input, &self.format, &self.key, &self.sig)?;
+        println!("{:?}", decoded);
+        Ok(())
+    }
+}
+
+impl CmdExecutor for GenerateKeyOpts {
+    async fn execute(&self) -> anyhow::Result<()> {
+        let key = process_generate(&self.format)?;
+
+        match self.format {
+            EncryptFormat::Blake3 => {
+                let path = self.output.join("blake3.txt");
+                fs::write(path, &key[0])?;
             }
-            CryptoSubcommand::Decrypt(opts) => {
-                let decrypted = process_decrypt(&opts.input, &opts.format, &opts.key, &opts.sig)?;
-                println!("{:?}", decrypted);
-            }
-            CryptoSubcommand::Generate(opts) => {
-                let key = process_generate(&opts.format)?;
-                match opts.format {
-                    EncryptFormat::Blake3 => {
-                        let path = opts.output.join("blake3.txt");
-                        fs::write(path, &key[0])?;
-                    }
-                    EncryptFormat::Ed25519 => {
-                        let path = &opts.output;
-                        fs::write(path.join("ed25519.sk"), &key[0])?;
-                        fs::write(path.join("ed25519.pk"), &key[1])?;
-                    }
-                }
-                println!("{:?}", key);
+            EncryptFormat::Ed25519 => {
+                let path = self.output.clone();
+                fs::write(path.join("ed25519.sk"), &key[0])?;
+                fs::write(path.join("ed25519.pk"), &key[1])?;
             }
         }
+        println!("{:?}", key);
         Ok(())
     }
 }

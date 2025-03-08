@@ -3,7 +3,7 @@ use base64::{Engine as _, prelude::*};
 
 use crate::{Base64Format, input_reader};
 
-pub fn process_encode(input: &str, format: Base64Format) -> anyhow::Result<String> {
+pub fn process_encode(input: &str, format: &Base64Format) -> anyhow::Result<String> {
     let content = input_reader(input)?;
     let encoded = match format {
         Base64Format::Standard => BASE64_STANDARD.encode(&content),
@@ -13,7 +13,7 @@ pub fn process_encode(input: &str, format: Base64Format) -> anyhow::Result<Strin
     Ok(encoded)
 }
 
-pub fn process_decode(input: &str, format: Base64Format) -> anyhow::Result<String> {
+pub fn process_decode(input: &str, format: &Base64Format) -> anyhow::Result<String> {
     let content = input_reader(input)?;
     let decoded = match format {
         Base64Format::Standard => BASE64_STANDARD.decode(&content),
@@ -31,8 +31,8 @@ mod tests {
 
     #[test]
     fn test_base64_codec() -> anyhow::Result<()> {
-        let encoded = process_encode("Hello, World!", Base64Format::Standard)?;
-        let decoded = process_decode(&encoded, Base64Format::Standard)?;
+        let encoded = process_encode("Hello, World!", &Base64Format::Standard)?;
+        let decoded = process_decode(&encoded, &Base64Format::Standard)?;
         assert_eq!("Hello, World!", decoded);
         Ok(())
     }
